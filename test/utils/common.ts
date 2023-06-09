@@ -89,7 +89,7 @@ export const setupTokenRoot = async function (token_name: string, token_symbol: 
     return new Token(_root, owner);
 }
 
-export const deployShopFactory = async function(owner: Address, launcher_pubkey: string, usdt: Address): Promise<Contract<ShopFactoryAbi>> {
+export const deployShopFactory = async function(owner: Address, usdt: Address): Promise<Contract<ShopFactoryAbi>> {
     const signer = await locklift.keystore.getSigner('0');
     const Shop = await locklift.factory.getContractArtifacts('Shop');
     const Platform = await locklift.factory.getContractArtifacts('Platform');
