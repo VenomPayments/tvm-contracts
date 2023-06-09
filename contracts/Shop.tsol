@@ -9,6 +9,7 @@ import "./libraries/Callback.tsol";
 import "./interfaces/IShop.tsol";
 import "./interfaces/IShopFactory.tsol";
 import "broxus-token-contracts/contracts/interfaces/ITokenWalletUpgradeable.tsol";
+import "broxus-token-contracts/contracts/interfaces/ITokenRoot.tsol";
 
 
 contract Shop is IShop {
@@ -66,6 +67,21 @@ contract Shop is IShop {
     modifier onlyOwner() {
         require (msg.sender == owner, Errors.NOT_OWNER);
         _;
+    }
+
+    function _setupTokenWallets() internal view {
+        ITokenRoot(usdt).deployWallet{value: Gas.TOKEN_WALLET_DEPLOY_VALUE, callback: IShop.receiveTokenWalletAddress }(
+            address(this), // owner
+            Gas.TOKEN_WALLET_DEPLOY_VALUE / 2 // deploy grams
+        );
+    }
+
+    function receiveTokenWalletAddress(address wallet) external override {
+        if (msg.sender == usdt) usdtWallet = wallet;
+    }
+
+    function encodeTokenTransfer(uint32 orderId, uint32 call_id) external pure returns (TvmCell) {
+        return abi.encode(orderId, call_id);
     }
 
     function onAcceptTokensTransfer(
@@ -150,12 +166,14 @@ contract Shop is IShop {
         TvmSlice initialData = s.loadRefAsSlice();
         ID = initialData.decode(uint32);
 
-        TvmSlice params = s.loadRefAsSlice();
-        (currentVersion,) = params.decode(uint32, uint32);
+        TvmCell params = s.loadRef();
+        TvmCell main_data;
+        (currentVersion,,main_data) = abi.decode(params, (uint32, uint32, TvmCell));
 
         uint32 call_id;
-        (owner, usdt, name, description, call_id) = params.decode(address, address, string, string, uint32);
+        (owner, usdt, name, description, call_id) = abi.decode(main_data, (address, address, string, string, uint32));
 
+        _setupTokenWallets();
         IShopFactory(root).onShopDeploy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(ID, owner, Callback.CallMeta(call_id, send_gas_to));
     }
 }

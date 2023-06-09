@@ -27,6 +27,24 @@
 			]
 		},
 		{
+			"name": "receiveTokenWalletAddress",
+			"inputs": [
+				{"name":"wallet","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "encodeTokenTransfer",
+			"inputs": [
+				{"name":"orderId","type":"uint32"},
+				{"name":"call_id","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"cell"}
+			]
+		},
+		{
 			"name": "onAcceptTokensTransfer",
 			"inputs": [
 				{"name":"value0","type":"address"},

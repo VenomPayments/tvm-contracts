@@ -6,6 +6,8 @@ import "broxus-token-contracts/contracts/interfaces/IAcceptTokensTransferCallbac
 
 
 interface IShop is IAcceptTokensTransferCallback {
+    function receiveTokenWalletAddress(address wallet) external;
+
     event Payment(uint32 call_id, address sender, uint128 amount, uint32 orderId);
     event Withdraw(uint32 call_id, uint128 amount);
     function upgrade(TvmCell new_code, uint32 version, Callback.CallMeta call_meta) external;

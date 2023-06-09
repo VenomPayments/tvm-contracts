@@ -81,7 +81,11 @@ contract ShopFactory is IShopFactory {
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED,
             stateInit: _buildShopInitData(shopCount)
-        }(shopCode, abi.encode(msg.sender, usdt, name, description), meta.send_gas_to);
+        }(
+            shopCode,
+            abi.encode(shopVersion, shopVersion, abi.encode(msg.sender, usdt, name, description, meta.call_id)),
+            meta.send_gas_to
+        );
     }
 
     function onShopDeploy(uint32 shop_ID, address shop_owner, Callback.CallMeta meta) external view reserveAndSendGas(meta) override {

@@ -1,0 +1,12 @@
+{
+    "type": "Account",
+    "address": "0:7dd20ff93320456682cd2b6f8c3eb39c98b08e64538cd770cfdaf53d9fca5574",
+    "deploymentName": "User",
+    "createAccountParams": {
+        "type": 3,
+        "value": "150000000000",
+        "publicKey": "8152425b0d568d3eb95df1a90aeafd793e2304269e35b24b6a4edbbf43f4913e"
+    },
+    "publicKey": "8152425b0d568d3eb95df1a90aeafd793e2304269e35b24b6a4edbbf43f4913e",
+    "signerId": "1"
+}
