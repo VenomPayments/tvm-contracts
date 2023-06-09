@@ -1,0 +1,26 @@
+{
+  "name": "vepay",
+  "version": "1.0.0",
+  "description": "Payment provider that allows sellers to accept Venom payments",
+  "scripts": {
+    "test": "npx locklift test --network local"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@broxus/contracts": "^1.1.1",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.2.5",
+    "broxus-token-contracts": "github:broxus/tip3",
+    "everscan-verify": "^1.6.1",
+    "locklift-verifier": "^1.0.3",
+    "locklift-deploy": "^1.0.2",
+    "chai": "^4.3.7",
+    "everscale-standalone-client": "^2.1.19",
+    "locklift": "^2.5.5",
+    "prettier": "^2.8.8",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.7.4"
+  }
+}

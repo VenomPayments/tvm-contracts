@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma ever-solidity >= 0.62.0;
+
+
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "./libraries/Gas.tsol";
+import "./libraries/Errors.tsol";
+import "./libraries/Callback.tsol";
+import "./interfaces/IShop.tsol";
+import "./interfaces/IShopFactory.tsol";
+
+
+contract Shop is IShop {
+    uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+
+    uint32 ID;
+    address root;
+    address usdt;
+    address owner;
+    string name;
+    string description;
+    TvmCell platform_code;
+    uint32 currentVersion;
+
+    constructor() public { revert(); }
+
+
+    function _reserve() internal pure returns (uint128) {
+        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    }
+
+    modifier reserve() {
+        tvm.rawReserve(_reserve(), 0);
+        _;
+    }
+
+    modifier onlyRoot() {
+        require (msg.sender == root, Errors.NOT_ROOT);
+        _;
+    }
+
+    function upgrade(TvmCell new_code, uint32 new_version, Callback.CallMeta meta) public onlyRoot {
+        if (new_version == currentVersion) {
+            tvm.rawReserve(_reserve(), 0);
+            meta.send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
+            return;
+        }
+
+        uint8 _tmp;
+        TvmBuilder main_builder;
+        main_builder.store(root); // address 267
+        main_builder.store(_tmp); // 8
+        main_builder.store(meta.send_gas_to); // address 267
+
+        main_builder.storeRef(platform_code); // ref
+
+        TvmBuilder initial;
+        initial.store(ID);
+
+        main_builder.storeRef(initial); // ref 2
+
+        TvmBuilder params;
+        params.store(new_version);
+        params.store(currentVersion);
+
+        main_builder.storeRef(params); // ref3
+
+        TvmCell storage_data = abi.encode(owner, usdt, name, description);
+        TvmCell data = abi.encode(meta.call_id, storage_data);
+
+        main_builder.storeRef(data); // ref4
+
+        tvm.setcode(new_code);
+        // run onCodeUpgrade from new code
+        tvm.setCurrentCode(new_code);
+        onCodeUpgrade(main_builder.toCell());
+    }
+
+    function onCodeUpgrade(TvmCell upgrade_data) private {
+        tvm.resetStorage();
+        tvm.rawReserve(_reserve(), 0);
+
+        TvmSlice s = upgrade_data.toSlice();
+        (address root_, , address send_gas_to) = s.decode(address, uint8, address);
+        root = root_;
+
+        platform_code = s.loadRef();
+
+        TvmSlice initialData = s.loadRefAsSlice();
+        ID = initialData.decode(uint32);
+
+        TvmSlice params = s.loadRefAsSlice();
+        (currentVersion,) = params.decode(uint32, uint32);
+
+        uint32 call_id;
+        (owner, usdt, name, description, call_id) = params.decode(address, address, string, string, uint32);
+
+        IShopFactory(root).onShopDeploy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(ID, call_id);
+    }
+}

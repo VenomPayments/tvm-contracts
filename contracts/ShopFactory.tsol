@@ -1,0 +1,107 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma ever-solidity >= 0.62.0;
+
+
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "./libraries/Gas.tsol";
+import "./libraries/Errors.tsol";
+import "./libraries/Callback.tsol";
+import "./interfaces/IShop.tsol";
+import {RPlatform as Platform} from "Platform.tsol";
+import "./interfaces/IShopFactory.tsol";
+
+
+contract ShopFactory is IShopFactory {
+    uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+
+    uint32 static deploy_nonce;
+
+    address owner;
+    address usdt; // 6 decimals
+    uint32 shopCount;
+
+    TvmCell static shopCode;
+    TvmCell static platformCode;
+    uint32 shopVersion;
+
+    event ShopCodeUpdate(uint32 call_id, uint32 oldVersion, uint32 newVersion);
+
+
+    constructor(address _owner, address _usdt) public {
+        require (msg.pubkey() == tvm.pubkey(), 101);
+        tvm.accept();
+
+        owner = _owner;
+        usdt = _usdt;
+    }
+
+    function _reserve() internal pure returns (uint128) {
+        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    }
+
+    modifier reserve() {
+        tvm.rawReserve(_reserve(), 0);
+        _;
+    }
+
+    modifier reserveAndSendGas(Callback.CallMeta meta) {
+        tvm.rawReserve(_reserve(), 0);
+        _;
+        meta.send_gas_to.transfer(0, false, MsgFlag.ALL_NOT_RESERVED);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, Errors.NOT_OWNER);
+        _;
+    }
+
+    function updateShopCode(TvmCell code, Callback.CallMeta meta) external onlyOwner reserveAndSendGas(meta) {
+        shopCode = code;
+        shopVersion += 1;
+        emit ShopCodeUpdate(meta.call_id, shopVersion - 1, shopVersion);
+    }
+
+    function forceUpgradeShops(address[] contracts, Callback.CallMeta meta) external view onlyOwner reserveAndSendGas(meta) {
+        require (msg.value >= Gas.SHOP_UPGRADE_VALUE * (contracts.length + 1), Errors.LOW_MSG_VALUE);
+
+        for (uint i = 0; i < contracts.length; i++) {
+            IShop(contracts[i]).upgrade{ value: Gas.SHOP_UPGRADE_VALUE }(shopCode, shopVersion, meta);
+        }
+    }
+
+    function deployShop(Callback.CallMeta meta) external reserve {
+        require (msg.value >= Gas.MIN_MSG_VALUE, Errors.LOW_MSG_VALUE);
+
+        meta.call_id = 1;
+    }
+
+    function onShopDeploy(uint32 ID, uint32 call_id) external view override {
+        require (getShopAddress(ID) == msg.sender, Errors.NOT_SHOP);
+
+        call_id = 2;
+    }
+
+    function getShopAddress(uint32 ID) public view responsible returns (address) {
+        return { value: 0, bounce: false, flag: MsgFlag.REMAINING_GAS }address(tvm.hash(_buildShopInitData(ID)));
+    }
+
+    function _buildShopInitData(uint32 ID) internal view returns (TvmCell) {
+        return tvm.buildStateInit({
+            contr: Platform,
+            varInit: {
+                root: address(this),
+                platformType: 0,
+                initialData: abi.encode(ID),
+                platformCode: platformCode
+            },
+            pubkey: 0,
+            code: platformCode
+        });
+    }
+
+    function upgrade(TvmCell new_code) external onlyOwner {
+
+    }
+
+    function onCodeUpgrade(TvmCell data) private {}
+}
