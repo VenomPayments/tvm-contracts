@@ -2,8 +2,11 @@
 pragma ever-solidity >= 0.62.0;
 
 import "../libraries/Callback.tsol";
+import "broxus-token-contracts/contracts/interfaces/IAcceptTokensTransferCallback.tsol";
 
 
-interface IShop {
+interface IShop is IAcceptTokensTransferCallback {
+    event Payment(uint32 call_id, address sender, uint128 amount, uint32 orderId);
+    event Withdraw(uint32 call_id, uint128 amount);
     function upgrade(TvmCell new_code, uint32 version, Callback.CallMeta call_meta) external;
 }

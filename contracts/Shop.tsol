@@ -8,6 +8,7 @@ import "./libraries/Errors.tsol";
 import "./libraries/Callback.tsol";
 import "./interfaces/IShop.tsol";
 import "./interfaces/IShopFactory.tsol";
+import "broxus-token-contracts/contracts/interfaces/ITokenWalletUpgradeable.tsol";
 
 
 contract Shop is IShop {
@@ -16,6 +17,8 @@ contract Shop is IShop {
     uint32 ID;
     address root;
     address usdt;
+    address usdtWallet;
+    uint128 usdtBalance;
     address owner;
     string name;
     string description;
@@ -24,6 +27,27 @@ contract Shop is IShop {
 
     constructor() public { revert(); }
 
+    function getDetails() external view returns (
+        uint32 _ID,
+        address _root,
+        address _usdt,
+        address _usdtWallet,
+        uint128 _usdtBalance,
+        address _owner,
+        string _name,
+        string _description,
+        uint32 _currentVersion
+    ) {
+        _ID = ID;
+        _root = root;
+        _usdt = usdt;
+        _usdtWallet = usdtWallet;
+        _usdtBalance = usdtBalance;
+        _owner = owner;
+        _name = name;
+        _description = description;
+        _currentVersion = currentVersion;
+    }
 
     function _reserve() internal pure returns (uint128) {
         return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
@@ -39,7 +63,44 @@ contract Shop is IShop {
         _;
     }
 
-    function upgrade(TvmCell new_code, uint32 new_version, Callback.CallMeta meta) public onlyRoot {
+    modifier onlyOwner() {
+        require (msg.sender == owner, Errors.NOT_OWNER);
+        _;
+    }
+
+    function onAcceptTokensTransfer(
+        address,
+        uint128 amount,
+        address sender,
+        address,
+        address remainingGasTo,
+        TvmCell payload
+    ) external override reserve {
+        require (msg.sender == usdtWallet, Errors.NOT_TOKEN_WALLET);
+
+        (uint32 orderId, uint32 call_id) = payload.toSlice().decode(uint32, uint32);
+        usdtBalance += amount;
+        emit Payment(call_id, sender, amount, orderId);
+        remainingGasTo.transfer(0, false, MsgFlag.ALL_NOT_RESERVED);
+    }
+
+    function withdraw(uint128 amount, Callback.CallMeta meta) external onlyOwner reserve {
+        require (amount <= usdtBalance, Errors.LOW_BALANCE);
+        usdtBalance -= amount;
+        emit Withdraw(meta.call_id, amount);
+
+        TvmCell empty;
+        ITokenWallet(usdtWallet).transfer{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
+            amount,
+            msg.sender,
+            0,
+            meta.send_gas_to,
+            false,
+            empty
+        );
+    }
+
+    function upgrade(TvmCell new_code, uint32 new_version, Callback.CallMeta meta) external onlyRoot override {
         if (new_version == currentVersion) {
             tvm.rawReserve(_reserve(), 0);
             meta.send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
@@ -95,6 +156,6 @@ contract Shop is IShop {
         uint32 call_id;
         (owner, usdt, name, description, call_id) = params.decode(address, address, string, string, uint32);
 
-        IShopFactory(root).onShopDeploy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(ID, call_id);
+        IShopFactory(root).onShopDeploy{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(ID, owner, Callback.CallMeta(call_id, send_gas_to));
     }
 }

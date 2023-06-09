@@ -69,16 +69,24 @@ contract ShopFactory is IShopFactory {
         }
     }
 
-    function deployShop(Callback.CallMeta meta) external reserve {
+    function deployShop(
+        string name,
+        string description,
+        Callback.CallMeta meta
+    ) external reserve {
         require (msg.value >= Gas.MIN_MSG_VALUE, Errors.LOW_MSG_VALUE);
 
-        meta.call_id = 1;
+        shopCount += 1;
+        new Platform{
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED,
+            stateInit: _buildShopInitData(shopCount)
+        }(shopCode, abi.encode(msg.sender, usdt, name, description), meta.send_gas_to);
     }
 
-    function onShopDeploy(uint32 ID, uint32 call_id) external view override {
-        require (getShopAddress(ID) == msg.sender, Errors.NOT_SHOP);
-
-        call_id = 2;
+    function onShopDeploy(uint32 shop_ID, address shop_owner, Callback.CallMeta meta) external view reserveAndSendGas(meta) override {
+        require (getShopAddress(shop_ID) == msg.sender, Errors.NOT_SHOP);
+        emit ShopDeployed(meta.call_id, shop_ID, shop_owner, msg.sender);
     }
 
     function getShopAddress(uint32 ID) public view responsible returns (address) {
@@ -100,7 +108,21 @@ contract ShopFactory is IShopFactory {
     }
 
     function upgrade(TvmCell new_code) external onlyOwner {
+        TvmCell data = abi.encode(
+            deploy_nonce,
+            owner,
+            usdt,
+            shopCount,
+            platformCode,
+            shopCode,
+            shopVersion
+        );
+        // set code after complete this method
+        tvm.setcode(new_code);
 
+        // run onCodeUpgrade from new new_code
+        tvm.setCurrentCode(new_code);
+        onCodeUpgrade(data);
     }
 
     function onCodeUpgrade(TvmCell data) private {}

@@ -290,12 +290,16 @@ IFREF {
 .loc ../contracts/ShopFactory.tsol, 72
 OVER
 PUSHCONT {
+	LDREF
+	LDREF
 	LDU 32
 	LDREF
 	ENDS
 	CTOS
 }
 PUSHCONT {
+	LDREF
+	LDREF
 	LDU 32
 }
 IFELSE
@@ -306,7 +310,7 @@ SWAP
 ENDS
 .loc ../contracts/ShopFactory.tsol, 0
 CALLREF {
-	CALL $deployShop_d0f294b7_internal_macro$
+	CALL $deployShop_a53dc54e_internal_macro$
 }
 DROP
 CALLREF {
@@ -314,25 +318,90 @@ CALLREF {
 }
 THROW 0
 
-.macro deployShop_d0f294b7_internal_macro
+.macro deployShop_a53dc54e_internal_macro
 .loc ../contracts/ShopFactory.tsol, 43
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/ShopFactory.tsol, 73
+.loc ../contracts/ShopFactory.tsol, 77
 DEPTH
 ADDCONST -2
 PICK
 PUSHINT 2000000000
 GEQ
 THROWIFNOT 1004
-.loc ../contracts/ShopFactory.tsol, 75
-PUSHINT 1
-SETINDEX 0
+.loc ../contracts/ShopFactory.tsol, 79
+GETGLOB 13
+INC
+UFITS 32
+SETGLOB 13
+.loc ../contracts/ShopFactory.tsol, 80
+SECOND
+XCHG S2
+GETGLOB 12
+GETGLOB 9
+NEWC
+STSLICE
+ROLLREV 3
+NEWC
+STSLICE
+STREF
+STREF
+STBREFR
+ENDC
+GETGLOB 14
+GETGLOB 13
+CALLREF {
+	CALL $_buildShopInitData_c5dc8b38_internal_macro$
+}
+DUP
+HASHCU
+NEWC
+STSLICECONST x801_
+STU 256
+NEWC
+STSLICECONST x62_
+STB
+PUSHINT 3
+STUR 111
+OVER
+CALLREF {
+	CTOS
+	LDI 1
+	SWAP
+	PUSHCONT {
+		LDI 5
+		NIP
+	}
+	IF
+	LDI 1
+	SWAP
+	PUSHCONT {
+		LDI 2
+		NIP
+	}
+	IF
+	LDOPTREF
+	LDOPTREF
+	LDDICT
+	ENDS
+	BLKDROP 3
+}
+STREF
+STSLICECONST 1
+ROLLREV 3
+NEWC
+STSLICECONST x23dc4360
+STREF
+STREF
+STSLICE
+STBREFR
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
 .loc ../contracts/ShopFactory.tsol, 0
-DROP
 
 .macro onShopDeploy
 DROP
@@ -343,28 +412,88 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ShopFactory.tsol, 78
+.loc ../contracts/ShopFactory.tsol, 87
+OVER
+PUSHCONT {
+	LDU 32
+	LDREF
+	ENDS
+	CTOS
+}
+PUSHCONT {
+	LDU 32
+}
+IFELSE
+LDMSGADDR
 LDU 32
-LDU 32
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+ROTREV
+PAIR
+SWAP
 ENDS
 .loc ../contracts/ShopFactory.tsol, 0
 CALLREF {
-	CALL $onShopDeploy_b9364338_internal_macro$
+	CALL $onShopDeploy_40b9f443_internal_macro$
 }
 IFREF {
 	CALL $upd_only_time_in_c4$
 }
 THROW 0
 
-.macro onShopDeploy_b9364338_internal_macro
-.loc ../contracts/ShopFactory.tsol, 79
-DROP
+.macro onShopDeploy_40b9f443_internal_macro
+.loc ../contracts/ShopFactory.tsol, 87
+DUP
+.loc ../contracts/ShopFactory.tsol, 48
+CALLREF {
+	CALL $_reserve_413ab4a8_internal_macro$
+}
+PUSHINT 0
+RAWRESERVE
+.loc ../contracts/ShopFactory.tsol, 49
+ROLLREV 3
+.loc ../contracts/ShopFactory.tsol, 88
+PUSH S2
 CALLREF {
 	CALL $getShopAddress_f7684da7_internal_macro$
 }
 GETGLOB 9
 SDEQ
 THROWIFNOT 2000
+.loc ../contracts/ShopFactory.tsol, 89
+GETGLOB 9
+SWAP
+XCHG S1, S3
+FIRST
+PUSHSLICE xc0000000000000000000000001
+NEWC
+STSLICE
+ROLLREV 4
+NEWC
+STSLICECONST x2f236fbc
+STU 32
+STU 32
+STSLICE
+SWAP
+NEWC
+STSLICE
+STBREFR
+STBREFR
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc ../contracts/ShopFactory.tsol, 50
+SECOND
+NEWC
+STSLICECONST x42_
+STSLICE
+PUSHINT 111
+STZEROES
+ENDC
+PUSHPOW2 7
+SENDRAWMSG
 .loc ../contracts/ShopFactory.tsol, 0
 
 .macro getShopAddress
@@ -376,7 +505,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ShopFactory.tsol, 84
+.loc ../contracts/ShopFactory.tsol, 92
 LDU 32
 GETGLOB 4
 ROT
@@ -451,7 +580,7 @@ THROW 0
 CALL $getShopAddress_f7684da7_internal_macro$
 
 .macro getShopAddress_f7684da7_internal_macro
-.loc ../contracts/ShopFactory.tsol, 85
+.loc ../contracts/ShopFactory.tsol, 93
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -476,7 +605,7 @@ CTOS
 CALL $_buildShopInitData_c5dc8b38_internal_macro$
 
 .macro _buildShopInitData_c5dc8b38_internal_macro
-.loc ../contracts/ShopFactory.tsol, 89
+.loc ../contracts/ShopFactory.tsol, 97
 PUSHINT 0
 NEWC
 STU 256
@@ -529,7 +658,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/ShopFactory.tsol, 102
+.loc ../contracts/ShopFactory.tsol, 110
 LDREF
 ENDS
 .loc ../contracts/ShopFactory.tsol, 0
@@ -544,11 +673,52 @@ THROW 0
 
 .macro upgrade_7916ae0d_internal_macro
 .loc ../contracts/ShopFactory.tsol, 54
-DROP
 GETGLOB 9
 GETGLOB 11
 SDEQ
 THROWIFNOT 1000
+.loc ../contracts/ShopFactory.tsol, 111
+GETGLOB 16
+GETGLOB 14
+GETGLOB 15
+GETGLOB 13
+GETGLOB 12
+GETGLOB 11
+GETGLOB 10
+NEWC
+STU 32
+STSLICE
+ROLLREV 5
+NEWC
+STSLICE
+STU 32
+STREF
+STREF
+STU 32
+STBREFR
+ENDC
+.loc ../contracts/ShopFactory.tsol, 121
+OVER
+SETCODE
+.loc ../contracts/ShopFactory.tsol, 124
+SWAP
+CTOS
+DUP
+PUSHSLICE x8adb35
+SDEQ
+PUSHCONT {
+	PLDREFIDX 1
+	CTOS
+}
+IF
+PLDREF
+CTOS
+BLESS
+POP C3
+.loc ../contracts/ShopFactory.tsol, 125
+CALLREF {
+	CALL $:onCodeUpgrade$
+}
 .loc ../contracts/ShopFactory.tsol, 0
 
 .internal-alias :onCodeUpgrade, 2
@@ -780,7 +950,7 @@ THROW 60
 
 .macro public_function_selector
 DUP
-PUSHINT 1494912869
+PUSHINT 1241152735
 LEQ
 IFJMPREF {
 	DUP
@@ -796,16 +966,16 @@ IFJMPREF {
 		CALL $upgrade$
 	}
 	DUP
+	PUSHINT 1183542529
+	EQUAL
+	IFJMPREF {
+		CALL $onShopDeploy$
+	}
+	DUP
 	PUSHINT 1241152735
 	EQUAL
 	IFJMPREF {
 		CALL $constructor$
-	}
-	DUP
-	PUSHINT 1494912869
-	EQUAL
-	IFJMPREF {
-		CALL $deployShop$
 	}
 }
 DUP
@@ -813,10 +983,10 @@ PUSHINT 2145344013
 LEQ
 IFJMPREF {
 	DUP
-	PUSHINT 1588588145
+	PUSHINT 1838442677
 	EQUAL
 	IFJMPREF {
-		CALL $onShopDeploy$
+		CALL $deployShop$
 	}
 	DUP
 	PUSHINT 2116464767

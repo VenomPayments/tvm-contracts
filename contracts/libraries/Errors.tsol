@@ -13,6 +13,8 @@ library Errors {
     uint16 constant BAD_SENDER = 1007;
     uint16 constant EMERGENCY = 1008;
     uint16 constant NOT_TOKEN_ROOT = 1009;
+    uint16 constant NOT_ROOT = 1010;
 
     uint16 constant NOT_SHOP = 2000;
+    uint16 constant LOW_BALANCE = 2001;
 }
