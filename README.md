@@ -1,3 +1,7 @@
+# Contract schema
+
+![Contract schema](etc/img.png "Contracts")
+
 # Setup
 
 ## Install dependencies
